@@ -12,28 +12,27 @@ export default function Home() {
   const [format, setFormat] = useState('video');
   const [error, setError] = useState('');
 
-  // Normalize any valid YouTube link to standard format
   const normalizeUrl = (url) => {
     try {
       const u = new URL(url.trim());
-      if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
-        if (u.pathname.includes('/shorts/')) {
-          const id = u.pathname.split('/shorts/')[1].split(/[/?&]/)[0];
-          return `https://www.youtube.com/watch?v=${id}`;
-        }
-        if (u.hostname === 'youtu.be') {
-          const id = u.pathname.split('/')[1];
-          return `https://www.youtube.com/watch?v=${id}`;
-        }
-        if (u.hostname.startsWith('m.')) {
-          u.hostname = u.hostname.replace('m.', 'www.');
-        }
-        return u.toString();
+      if (u.hostname.startsWith('m.')) {
+        u.hostname = u.hostname.replace('m.', 'www.');
       }
-    } catch (err) {
+
+      if (u.hostname.includes('youtu.be')) {
+        const id = u.pathname.split('/')[1];
+        return `https://www.youtube.com/watch?v=${id}`;
+      }
+
+      if (u.pathname.includes('/shorts/')) {
+        const id = u.pathname.split('/shorts/')[1].split(/[/?&]/)[0];
+        return `https://www.youtube.com/watch?v=${id}`;
+      }
+
+      return u.toString();
+    } catch {
       return url;
     }
-    return url;
   };
 
   const fetchVideoInfo = async (url) => {
@@ -52,7 +51,7 @@ export default function Home() {
       if (data.error) throw new Error(data.error);
       return data;
     } catch (err) {
-      console.error('Fetch failed for', url, err.message);
+      console.error('Error fetching:', normalizedUrl, err.message);
       return null;
     }
   };
@@ -63,12 +62,12 @@ export default function Home() {
     setError('');
     setVideos([]);
 
-    const videoUrls = urls.split('\n').map(u => u.trim()).filter(Boolean);
-    const results = await Promise.all(videoUrls.map(fetchVideoInfo));
+    const urlList = urls.split('\n').map(u => u.trim()).filter(Boolean);
+    const results = await Promise.all(urlList.map(fetchVideoInfo));
     const validVideos = results.filter(v => v !== null);
 
     if (validVideos.length === 0) {
-      setError('No valid videos fetched.');
+      setError('No valid videos fetched. Please check your URLs.');
     }
 
     setVideos(validVideos);
@@ -99,7 +98,7 @@ export default function Home() {
   return (
     <div className={`min-h-screen ${resolvedTheme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'} p-4`}>
       <header className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">YouTube Video Downloader</h1>
+        <h1 className="text-2xl font-bold">YouTube Downloader</h1>
         <button onClick={handleThemeToggle} className="px-4 py-2 bg-gray-700 text-white rounded">
           Toggle {resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode
         </button>
@@ -134,19 +133,15 @@ export default function Home() {
         {videos.map((video, index) => (
           <div key={index} className="bg-gray-200 p-4 rounded">
             <h2 className="font-bold text-xl">{video.title}</h2>
-            <div className="mb-4">
-              <img src={video.thumbnail} alt={video.title} className="w-full h-auto rounded" />
-            </div>
+            <img src={video.thumbnail} alt={video.title} className="w-full h-auto rounded mb-4" />
             <LinkPreview video={video} />
-            <div className="flex gap-4">
-              <a
-                href={video.url}  // Corrected to `video.url`
-                className="px-4 py-2 bg-green-600 text-white rounded"
-                download
-              >
-                Download {format === 'video' ? 'Video' : 'Audio'}
-              </a>
-            </div>
+            <a
+              href={video.url}
+              className="inline-block mt-2 px-4 py-2 bg-green-600 text-white rounded"
+              download
+            >
+              Download {format === 'video' ? 'Video' : 'Audio'}
+            </a>
           </div>
         ))}
       </div>
