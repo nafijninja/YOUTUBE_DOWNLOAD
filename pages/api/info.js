@@ -8,10 +8,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch video information
-    const info = await ytdl.getInfo(url);
+    // Normalize Shorts and youtu.be links for backend safety (just in case)
+    let normalizedUrl = url;
+    const parsed = new URL(url);
 
-    // Filter formats based on selected type
+    if (parsed.hostname === 'youtu.be') {
+      const id = parsed.pathname.split('/')[1];
+      normalizedUrl = `https://www.youtube.com/watch?v=${id}`;
+    }
+
+    if (parsed.pathname.includes('/shorts/')) {
+      const id = parsed.pathname.split('/shorts/')[1].split(/[/?&]/)[0];
+      normalizedUrl = `https://www.youtube.com/watch?v=${id}`;
+    }
+
+    // Fetch video information
+    const info = await ytdl.getInfo(normalizedUrl);
+
+    // Filter formats
     const filteredFormats = ytdl.filterFormats(
       info.formats,
       format === 'audio' ? 'audioonly' : 'videoandaudio'
@@ -21,7 +35,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "No suitable formats found." });
     }
 
-    const selectedFormat = filteredFormats[0];
+    const selectedFormat = filteredFormats.find(f => f.contentLength) || filteredFormats[0];
     const sizeInBytes = selectedFormat.contentLength;
     const sizeInMB = sizeInBytes ? (parseInt(sizeInBytes) / (1024 * 1024)).toFixed(2) : null;
 
@@ -33,9 +47,9 @@ export default async function handler(req, res) {
       url: selectedFormat.url,
     };
 
-    res.status(200).json(videoDetails);
+    return res.status(200).json(videoDetails);
   } catch (error) {
     console.error("Error fetching video info:", error);
-    res.status(500).json({ error: "Failed to fetch video details." });
+    return res.status(500).json({ error: "Failed to fetch video details." });
   }
 }
