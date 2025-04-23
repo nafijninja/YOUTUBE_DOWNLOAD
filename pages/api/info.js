@@ -1,40 +1,41 @@
 import ytdl from 'ytdl-core';
 
-export default async (req, res) => {
+export default async function handler(req, res) {
   const { url, format } = req.query;
 
+  if (!url || !format) {
+    return res.status(400).json({ error: "Missing 'url' or 'format' query parameter." });
+  }
+
   try {
-    // Fetch video information from YouTube
+    // Fetch video information
     const info = await ytdl.getInfo(url);
 
-    // Filter formats based on requested type (audio or video+audio)
-    const formats = ytdl.filterFormats(info.formats, format === 'audio' ? 'audioonly' : 'videoandaudio');
+    // Filter formats based on selected type
+    const filteredFormats = ytdl.filterFormats(
+      info.formats,
+      format === 'audio' ? 'audioonly' : 'videoandaudio'
+    );
 
-    // Choose the highest quality format based on user request
-    const selectedFormat = formats[0];
-
-    // Check if contentLength exists and convert bytes to MB if present
-    const sizeInBytes = selectedFormat.contentLength;
-    let fileSize = 'Unknown';
-
-    if (sizeInBytes) {
-      const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);  // Convert bytes to MB
-      fileSize = `${sizeInMB} MB`;
+    if (filteredFormats.length === 0) {
+      return res.status(404).json({ error: "No suitable formats found." });
     }
 
-    // Prepare video details for response
+    const selectedFormat = filteredFormats[0];
+    const sizeInBytes = selectedFormat.contentLength;
+    const sizeInMB = sizeInBytes ? (parseInt(sizeInBytes) / (1024 * 1024)).toFixed(2) : null;
+
     const videoDetails = {
       title: info.videoDetails.title,
-      thumbnail: info.videoDetails.thumbnails[0].url,
-      size: fileSize, // Display the file size in MB or "Unknown"
+      thumbnail: info.videoDetails.thumbnails.at(-1).url,
+      size: sizeInMB,
       videoId: info.videoDetails.videoId,
-      url: ytdl.chooseFormat(info.formats, { quality: 'highestvideo' }).url,
+      url: selectedFormat.url,
     };
 
-    // Send a successful response with video details
     res.status(200).json(videoDetails);
-  } catch (err) {
-    // If an error occurs, send a 500 response with the error message
+  } catch (error) {
+    console.error("Error fetching video info:", error);
     res.status(500).json({ error: "Failed to fetch video details." });
   }
-};
+}
