@@ -15,8 +15,10 @@ export default function Home() {
     try {
       const res = await fetch(`/api/info?url=${url}&format=${format}`);
       const data = await res.json();
+      console.log('Video info:', data); // Log the response for debugging
       return data;
     } catch (err) {
+      console.error('Error fetching video info:', err); // Log errors for debugging
       setError("Failed to fetch video information.");
       return null;
     }
@@ -81,4 +83,3 @@ export default function Home() {
     </div>
   );
 }
-    
