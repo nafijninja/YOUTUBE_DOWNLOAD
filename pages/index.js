@@ -131,7 +131,22 @@ export default function Home() {
 
       <div className="mt-6 space-y-6">
         {videos.map((video, index) => (
-          <LinkPreview key={index} video={video} />
+          <div key={index} className="bg-gray-200 p-4 rounded">
+            <h2 className="font-bold text-xl">{video.title}</h2>
+            <div className="mb-4">
+              <img src={video.thumbnailUrl} alt={video.title} className="w-full h-auto rounded" />
+            </div>
+            <LinkPreview video={video} />
+            <div className="flex gap-4">
+              <a
+                href={video.downloadUrl}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+                download
+              >
+                Download {format === 'video' ? 'Video' : 'Audio'}
+              </a>
+            </div>
+          </div>
         ))}
       </div>
     </div>
