@@ -4,41 +4,58 @@ import LinkPreview from '../components/LinkPreview';
 import { useDropzone } from 'react-dropzone';
 
 export default function Home() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [urls, setUrls] = useState('');
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [format, setFormat] = useState('video');
   const [error, setError] = useState('');
 
-  // Helper function to extract video ID from various YouTube URL formats
-  const extractVideoId = (url) => {
-    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|\S+?v=|(?:v|e(?:mbed)?)\/|\S+\/[\w\-]+(?:\S*?=|\/)?)|youtu\.be\/)([\w\-]+)/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
+  // Normalize any valid YouTube link to standard format
+  const normalizeUrl = (url) => {
+    try {
+      const u = new URL(url.trim());
+      if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+        if (u.pathname.includes('/shorts/')) {
+          const id = u.pathname.split('/shorts/')[1].split(/[/?&]/)[0];
+          return `https://www.youtube.com/watch?v=${id}`;
+        }
+        if (u.hostname === 'youtu.be') {
+          const id = u.pathname.split('/')[1];
+          return `https://www.youtube.com/watch?v=${id}`;
+        }
+        if (u.hostname.startsWith('m.')) {
+          u.hostname = u.hostname.replace('m.', 'www.');
+        }
+        return u.toString();
+      }
+    } catch (err) {
+      return url;
+    }
+    return url;
   };
 
-  // Fetch video info from API
   const fetchVideoInfo = async (url) => {
-    const videoId = extractVideoId(url);
+    const normalizedUrl = normalizeUrl(url);
+    const videoIdMatch = normalizedUrl.match(/[?&]v=([^&]+)/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
+
     if (!videoId) {
-      setError('Invalid YouTube URL');
+      console.warn('Invalid video ID for:', url);
       return null;
     }
 
     try {
-      const res = await fetch(`/api/info?url=${encodeURIComponent(url)}&format=${format}`);
+      const res = await fetch(`/api/info?url=${encodeURIComponent(normalizedUrl)}&format=${format}`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       return data;
     } catch (err) {
       console.error('Fetch failed for', url, err.message);
-      setError('Failed to fetch video information.');
       return null;
     }
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -57,12 +74,10 @@ export default function Home() {
     setIsLoading(false);
   };
 
-  // Toggle dark/light theme
   const handleThemeToggle = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  // Dropzone setup for file upload
   const { getRootProps, getInputProps } = useDropzone({
     accept: { 'text/plain': ['.txt'] },
     onDrop: (files) => {
@@ -70,7 +85,6 @@ export default function Home() {
     },
   });
 
-  // Handle keypress event for submitting when Ctrl/Command + Enter is pressed
   useEffect(() => {
     const handleKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -82,11 +96,11 @@ export default function Home() {
   }, [urls, format]);
 
   return (
-    <div className={`container ${theme === 'dark' ? 'dark bg-black text-white' : 'bg-white text-black'} p-4`}>
+    <div className={`min-h-screen ${resolvedTheme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'} p-4`}>
       <header className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">YouTube Video Downloader</h1>
         <button onClick={handleThemeToggle} className="px-4 py-2 bg-gray-700 text-white rounded">
-          Toggle Dark Mode
+          Toggle {resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode
         </button>
       </header>
 
@@ -95,10 +109,10 @@ export default function Home() {
           value={urls}
           onChange={(e) => setUrls(e.target.value)}
           placeholder="Enter YouTube URLs, one per line"
-          className="w-full h-32 border p-2 rounded"
+          className="w-full h-32 border p-2 rounded text-black"
         />
         <div className="flex gap-4">
-          <select value={format} onChange={(e) => setFormat(e.target.value)} className="border p-2 rounded">
+          <select value={format} onChange={(e) => setFormat(e.target.value)} className="border p-2 rounded text-black">
             <option value="video">Video</option>
             <option value="audio">Audio</option>
           </select>
