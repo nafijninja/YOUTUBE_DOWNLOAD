@@ -11,7 +11,21 @@ export default function Home() {
   const [format, setFormat] = useState('video');
   const [error, setError] = useState('');
 
+  // Helper function to extract video ID from various YouTube URL formats
+  const extractVideoId = (url) => {
+    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|\S+?v=|(?:v|e(?:mbed)?)\/|\S+\/[\w\-]+(?:\S*?=|\/)?)|youtu\.be\/)([\w\-]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  // Fetch video info from API
   const fetchVideoInfo = async (url) => {
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      setError('Invalid YouTube URL');
+      return null;
+    }
+
     try {
       const res = await fetch(`/api/info?url=${encodeURIComponent(url)}&format=${format}`);
       const data = await res.json();
@@ -19,10 +33,12 @@ export default function Home() {
       return data;
     } catch (err) {
       console.error('Fetch failed for', url, err.message);
+      setError('Failed to fetch video information.');
       return null;
     }
   };
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -41,10 +57,12 @@ export default function Home() {
     setIsLoading(false);
   };
 
+  // Toggle dark/light theme
   const handleThemeToggle = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  // Dropzone setup for file upload
   const { getRootProps, getInputProps } = useDropzone({
     accept: { 'text/plain': ['.txt'] },
     onDrop: (files) => {
@@ -52,6 +70,7 @@ export default function Home() {
     },
   });
 
+  // Handle keypress event for submitting when Ctrl/Command + Enter is pressed
   useEffect(() => {
     const handleKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
