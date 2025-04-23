@@ -1,4 +1,3 @@
-// pages/api/info.js
 import ytdl from 'ytdl-core';
 
 export default async function handler(req, res) {
@@ -49,8 +48,8 @@ export default async function handler(req, res) {
     // Prepare the response with video details
     const videoDetails = {
       title: info.videoDetails.title,
-      thumbnail: info.videoDetails.thumbnails.at(-1).url,
-      size: sizeInMB,
+      thumbnail: info.videoDetails.thumbnails.at(-1).url, // Use the highest resolution thumbnail
+      size: sizeInMB, // Size in MB
       videoId: info.videoDetails.videoId,
       url: selectedFormat.url, // URL for the chosen format (audio or video)
     };
