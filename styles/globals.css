@@ -1,15 +1,15 @@
 /* Base styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
-  color: #111;
-  transition: background-color 0.3s, color 0.3s;
+  background-color: #f4f7fb;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -17,32 +17,47 @@ body {
 header {
   text-align: center;
   margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
 }
 
+/* Form styles */
 form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 input, select, textarea {
-  padding: 10px;
+  padding: 12px;
   width: 100%;
   box-sizing: border-box;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 1rem;
+  color: #333;
+  transition: border-color 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #1db954;
+  outline: none;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   margin-top: 10px;
   cursor: pointer;
   background-color: #1db954;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
-  transition: background-color 0.2s;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
@@ -52,7 +67,7 @@ button:hover {
 /* Dark mode */
 .dark {
   background-color: #121212;
-  color: #ffffff;
+  color: #f1f1f1;
 }
 
 .dark input,
@@ -63,19 +78,34 @@ button:hover {
   border: 1px solid #444;
 }
 
+.dark button {
+  background-color: #159442;
+}
+
 .dark .drag-drop-box {
   border-color: #444;
-  color: #aaa;
+  color: #ccc;
 }
 
 /* Drag & Drop */
 .drag-drop-box {
   border: 2px dashed #ccc;
-  padding: 2rem;
+  padding: 3rem;
   text-align: center;
   border-radius: 10px;
-  margin-top: 20px;
+  margin-top: 30px;
   color: #555;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.drag-drop-box:hover {
+  border-color: #1db954;
+}
+
+.drag-drop-box p {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 /* Video preview */
@@ -83,28 +113,46 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 2rem;
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .video-preview img {
-  width: 120px;
-  height: 90px;
+  width: 140px;
+  height: 105px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .video-info {
   flex-grow: 1;
 }
 
-/* File size display */
-.video-info .file-size {
-  margin: 0.4rem 0;
-  font-size: 0.9rem;
-  color: #555;
+.video-info h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #333;
 }
 
-/* Dark mode support for file size */
+.video-info .file-size {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #777;
+}
+
+.video-info .file-size span {
+  font-weight: bold;
+}
+
+/* Dark mode support for video info */
+.dark .video-info h3 {
+  color: #f1f1f1;
+}
+
 .dark .video-info .file-size {
   color: #ccc;
 }
@@ -112,10 +160,10 @@ button:hover {
 /* Progress bar */
 .progress-bar {
   background-color: #eee;
-  border-radius: 4px;
+  border-radius: 5px;
+  margin-top: 15px;
+  height: 12px;
   overflow: hidden;
-  margin-top: 10px;
-  height: 10px;
 }
 
 .progress-fill {
@@ -129,7 +177,39 @@ button:hover {
 .error-message {
   background-color: #ffe5e5;
   color: #b10000;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 10px;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  form {
+    gap: 8px;
+  }
+
+  input, select, textarea {
+    font-size: 0.95rem;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+
+  .video-preview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .drag-drop-box {
+    padding: 2.5rem;
+  }
 }
