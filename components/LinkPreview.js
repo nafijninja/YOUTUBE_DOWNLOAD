@@ -1,52 +1,59 @@
+// components/LinkPreview.js
 import React from 'react';
 import ReactPlayer from 'react-player';
 
 const LinkPreview = ({ video }) => {
   if (!video) return null;
 
-  const { title, thumbnail, size, url } = video;
+  const { title, thumbnail, size, url, videoId } = video;
 
   return (
     <div className="video-preview border p-4 rounded shadow-md space-y-4">
-      {/* YouTube video preview */}
+      {/* Embedded YouTube Player */}
       <ReactPlayer 
-        url={`https://www.youtube.com/watch?v=${video.videoId}`} 
+        url={`https://www.youtube.com/watch?v=${videoId}`} 
         width="100%" 
-        height="auto" 
+        height="360px"
+        controls
         className="rounded"
       />
 
-      {/* Thumbnail Image */}
-      <div className="relative">
-        <img 
-          src={thumbnail} 
-          alt={title} 
-          className="w-full h-auto rounded mt-4"
-        />
-      </div>
+      {/* Thumbnail fallback */}
+      {!ReactPlayer.canPlay(url) && (
+        <div className="relative">
+          <img 
+            src={thumbnail} 
+            alt={title} 
+            className="w-full h-auto rounded mt-4"
+          />
+        </div>
+      )}
 
-      {/* Video Title */}
+      {/* Title */}
       <h3 className="text-xl font-semibold">{title}</h3>
 
-      {/* Video Size */}
+      {/* Size Info */}
       <p className="text-sm text-gray-500">
-        Size: {size ? (size / 1024 / 1024).toFixed(2) : 'N/A'} MB
+        Size: {size ? `${size} MB` : 'N/A'}
       </p>
 
       {/* Download Link */}
-      <div className="mt-4">
-        <a href={url} download className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      <div className="flex flex-wrap gap-2">
+        <a
+          href={url}
+          download
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
           Download
         </a>
-      </div>
 
-      {/* Copy Link Button */}
-      <button 
-        onClick={() => navigator.clipboard.writeText(url)} 
-        className="mt-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition"
-      >
-        Copy Link
-      </button>
+        <button 
+          onClick={() => navigator.clipboard.writeText(url)} 
+          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition"
+        >
+          Copy Link
+        </button>
+      </div>
     </div>
   );
 };
